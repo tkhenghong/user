@@ -52,3 +52,12 @@ These additional references should also help you:
 
 * [Gradle Build Scans – insights for your project's build](https://scans.gradle.com#gradle)
 * [Declarative REST calls with Spring Cloud OpenFeign sample](https://github.com/spring-cloud-samples/feign-eureka)
+
+# Spring REST OpenAPI 3.0
+
+### References used:
+* https://www.baeldung.com/spring-rest-openapi-documentation
+
+## Links for Open API 3.0
+* http://localhost:8080/v3/api-docs/ (API Docs in JSON format)
+* http://localhost:8080/api-docs.yaml (API Docs in YAML format)

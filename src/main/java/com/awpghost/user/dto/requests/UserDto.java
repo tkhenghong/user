@@ -1,4 +1,4 @@
-package com.awpghost.user.dto;
+package com.awpghost.user.dto.requests;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -9,6 +9,6 @@ public class UserDto {
     private String firstName;
     private String lastName;
     private String email;
-    private String location;
+    private String nationality;
     private String mobileNo;
 }
