@@ -44,7 +44,7 @@ public class UserServiceImpl implements UserService {
     @Autowired
     public UserServiceImpl(UserRepository userRepository,
                            ReactiveRedisTemplate<String, String> reactiveRedisTemplate,
-                           @Value("token.verify.timeout") long TOKEN_EXPIRATION_TIME,
+                           @Value("${token.verify.timeout}") long TOKEN_EXPIRATION_TIME,
                            KafkaTemplate<String, String> kafkaTemplate,
                            ObjectMapper objectMapper,
                            Environment environment) {

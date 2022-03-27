@@ -23,7 +23,7 @@ public class KafkaConsumerConfigurations {
 
     @Autowired
     KafkaConsumerConfigurations(@Value(value = "${spring.kafka.bootstrap-servers}") String bootstrapAddress,
-                                @Value("kafka.consumer.group.id") String groupId) {
+                                @Value("${kafka.consumer.group.id}") String groupId) {
         this.bootstrapAddress = bootstrapAddress;
         this.groupId = groupId;
     }
