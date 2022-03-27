@@ -1,7 +1,8 @@
-package com.awpghost.user.configurations;
+package com.awpghost.user.configurations.kafka;
 
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.common.serialization.StringDeserializer;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.kafka.annotation.EnableKafka;
@@ -16,10 +17,18 @@ import java.util.Map;
 @Configuration
 public class KafkaConsumerConfigurations {
 
-    @Value(value = "${spring.kafka.bootstrap-servers}")
-    private String bootstrapAddress;
+    private final String bootstrapAddress;
 
-    public ConsumerFactory<String, String> consumerFactory(String groupId) {
+    private final String groupId;
+
+    @Autowired
+    KafkaConsumerConfigurations(@Value(value = "${spring.kafka.bootstrap-servers}") String bootstrapAddress,
+                                @Value("kafka.consumer.group.id") String groupId) {
+        this.bootstrapAddress = bootstrapAddress;
+        this.groupId = groupId;
+    }
+
+    public ConsumerFactory<String, String> consumerFactory() {
         Map<String, Object> props = new HashMap<>();
         props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapAddress);
         props.put(ConsumerConfig.GROUP_ID_CONFIG, groupId);
@@ -32,8 +41,7 @@ public class KafkaConsumerConfigurations {
 
     public ConcurrentKafkaListenerContainerFactory<String, String> kafkaListenerContainerFactory(String groupId) {
         ConcurrentKafkaListenerContainerFactory<String, String> factory = new ConcurrentKafkaListenerContainerFactory<>();
-        factory.setConsumerFactory(consumerFactory(groupId));
+        factory.setConsumerFactory(consumerFactory());
         return factory;
     }
-
 }

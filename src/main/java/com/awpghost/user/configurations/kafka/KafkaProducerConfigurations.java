@@ -1,4 +1,4 @@
-package com.awpghost.user.configurations;
+package com.awpghost.user.configurations.kafka;
 
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.StringSerializer;

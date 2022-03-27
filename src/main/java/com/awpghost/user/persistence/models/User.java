@@ -27,8 +27,18 @@ public class User {
 
     private String email;
 
-    private String nationality;
+    private String location; // Country/region code ISO 3166-2
 
     private String mobileNo;
+
+    private String address1;
+
+    private String address2;
+
+    private String city;
+
+    private String state;
+
+    private String zip;
 
 }

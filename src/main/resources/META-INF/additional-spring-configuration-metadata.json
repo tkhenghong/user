@@ -1,0 +1,8 @@
+{
+  "properties": [
+    {
+      "name": "token.verify.timeout",
+      "type": "java.lang.String",
+      "description": "Token verify timeout in milliseconds."
+    }
+  ] }
