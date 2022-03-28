@@ -2,6 +2,8 @@ package com.awpghost.user.controllers;
 
 import com.awpghost.user.dto.requests.UserDto;
 import com.awpghost.user.dto.responses.UserResponseDto;
+import com.awpghost.user.enums.VerificationMethod;
+import com.awpghost.user.exceptions.GetUserException;
 import com.awpghost.user.exceptions.TokenVerificationException;
 import com.awpghost.user.exceptions.UserNotFoundException;
 import com.awpghost.user.persistence.models.User;
@@ -16,10 +18,11 @@ import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
 
 import javax.validation.Valid;
+import java.util.Optional;
 
-@RestController
-@RequestMapping("/user")
+@RequestMapping("/api/v1/users")
 @Log4j2
+@RestController
 public class UserController {
 
     private final UserService userService;
@@ -46,10 +49,10 @@ public class UserController {
     public Mono<Boolean> mobileNumberVerification(@RequestParam(name = "token") final String token, @RequestParam(name = "otp") final String otp) {
         if (StringUtils.hasText(token)) {
             log.info("Verify user account mobile number with token: {}", token);
-            return userService.verifyMobileNoToken(token);
+            return userService.verifyMobileNo(token, VerificationMethod.TOKEN);
         } else if (StringUtils.hasText(otp)) {
             log.info("Verify user account mobile number with otp: {}", otp);
-            return userService.verifyMobileNoOTP(otp);
+            return userService.verifyMobileNo(token, VerificationMethod.OTP);
         } else {
             return Mono.error(new TokenVerificationException("No token or otp provided"));
         }
@@ -63,24 +66,34 @@ public class UserController {
     public Mono<Boolean> emailVerification(@RequestParam(name = "token") final String token, @RequestParam(name = "otp") final String otp) {
         if (StringUtils.hasText(token)) {
             log.info("Verify user account email address with token: {}", token);
-            return userService.verifyEmailToken(token);
+            return userService.verifyEmail(token, VerificationMethod.TOKEN);
         } else if (StringUtils.hasText(otp)) {
             log.info("Verify user account email address with otp: {}", otp);
-            return userService.verifyEmailOTP(otp);
+            return userService.verifyEmail(token, VerificationMethod.OTP);
         } else {
             return Mono.error(new TokenVerificationException("No token or otp provided"));
         }
     }
 
-    @Operation(summary = "Get a user using email address")
+    @Operation(summary = "Get a user using ID")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Successful operation"),
             @ApiResponse(responseCode = "404", description = "User not found")
     })
-    @GetMapping("/email}")
-    public Mono<UserResponseDto> getUserByEmail(@RequestParam("email") String email) {
-        return userService.getUserByEmail(email).flatMap(user ->
-                user.isEmpty() ? Mono.error(new UserNotFoundException("User not found")) : Mono.just(mapUserToUserResponseDto(user.get()))
+    @GetMapping("/")
+    public Mono<UserResponseDto> getUser(@RequestParam("id") String id, @RequestParam("email") String email) {
+        Mono<Optional<User>> monoOptionalUser;
+
+        if (StringUtils.hasText(id)) {
+            monoOptionalUser = userService.getUserByEmail(id);
+        } else if (StringUtils.hasText(email)) {
+            monoOptionalUser = userService.getUserByEmail(email);
+        } else {
+            return Mono.error(new UserNotFoundException("No user id or email provided"));
+        }
+
+        return monoOptionalUser.flatMap(user ->
+                user.isEmpty() ? Mono.error(new GetUserException("No ID or email provided")) : Mono.just(mapUserToUserResponseDto(user.get()))
         );
     }
 

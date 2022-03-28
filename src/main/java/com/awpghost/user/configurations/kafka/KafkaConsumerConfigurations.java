@@ -19,19 +19,14 @@ public class KafkaConsumerConfigurations {
 
     private final String bootstrapAddress;
 
-    private final String groupId;
-
     @Autowired
-    KafkaConsumerConfigurations(@Value(value = "${spring.kafka.bootstrap-servers}") String bootstrapAddress,
-                                @Value("${kafka.consumer.group.id}") String groupId) {
+    KafkaConsumerConfigurations(@Value(value = "${spring.kafka.bootstrap-servers}") String bootstrapAddress) {
         this.bootstrapAddress = bootstrapAddress;
-        this.groupId = groupId;
     }
 
     public ConsumerFactory<String, String> consumerFactory() {
         Map<String, Object> props = new HashMap<>();
         props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapAddress);
-        props.put(ConsumerConfig.GROUP_ID_CONFIG, groupId);
         props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
         props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
         props.put(ConsumerConfig.MAX_PARTITION_FETCH_BYTES_CONFIG, "20971520");
@@ -39,7 +34,7 @@ public class KafkaConsumerConfigurations {
         return new DefaultKafkaConsumerFactory<>(props);
     }
 
-    public ConcurrentKafkaListenerContainerFactory<String, String> kafkaListenerContainerFactory(String groupId) {
+    public ConcurrentKafkaListenerContainerFactory<String, String> kafkaListenerContainerFactory() {
         ConcurrentKafkaListenerContainerFactory<String, String> factory = new ConcurrentKafkaListenerContainerFactory<>();
         factory.setConsumerFactory(consumerFactory());
         return factory;
