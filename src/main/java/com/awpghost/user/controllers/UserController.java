@@ -20,7 +20,7 @@ import reactor.core.publisher.Mono;
 import javax.validation.Valid;
 import java.util.Optional;
 
-@RequestMapping("/api/v1/users")
+@RequestMapping("/user")
 @Log4j2
 @RestController
 public class UserController {
@@ -37,7 +37,7 @@ public class UserController {
             @ApiResponse(responseCode = "200", description = "Successful operation"),
     })
     @PostMapping("/register")
-    public Mono<UserResponseDto> registerUser(@Valid UserDto userDto) {
+    public Mono<UserResponseDto> registerUser(@Valid @RequestBody UserDto userDto) {
         return userService.createUser(userDto).map(this::mapUserToUserResponseDto);
     }
 
@@ -75,37 +75,27 @@ public class UserController {
         }
     }
 
-    @Operation(summary = "Get a user using ID")
+    @Operation(summary = "Get a user using Email/Mobile Number")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Successful operation"),
             @ApiResponse(responseCode = "404", description = "User not found")
     })
-    @GetMapping("/")
-    public Mono<UserResponseDto> getUser(@RequestParam("id") String id, @RequestParam("email") String email) {
+    @GetMapping("")
+    public Mono<UserResponseDto> getUser(@RequestParam("id") String id, @RequestParam("email") String email, @RequestParam("mobileNo") String mobileNo) {
         Mono<Optional<User>> monoOptionalUser;
 
         if (StringUtils.hasText(id)) {
-            monoOptionalUser = userService.getUserByEmail(id);
+            monoOptionalUser = userService.getUserById(id);
         } else if (StringUtils.hasText(email)) {
             monoOptionalUser = userService.getUserByEmail(email);
+        } else if (StringUtils.hasText(mobileNo)) {
+            monoOptionalUser = userService.getUserByMobileNo(mobileNo);
         } else {
-            return Mono.error(new UserNotFoundException("No user id or email provided"));
+            return Mono.error(new UserNotFoundException("No email provided"));
         }
 
         return monoOptionalUser.flatMap(user ->
-                user.isEmpty() ? Mono.error(new GetUserException("No ID or email provided")) : Mono.just(mapUserToUserResponseDto(user.get()))
-        );
-    }
-
-    @Operation(summary = "Get a user using mobile number")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Successful operation"),
-            @ApiResponse(responseCode = "404", description = "User not found")
-    })
-    @GetMapping("/mobileNo")
-    public Mono<UserResponseDto> getUserByMobileNo(@RequestParam("mobileNo") String mobileNo) {
-        return userService.getUserByMobileNo(mobileNo).flatMap(user ->
-                user.isEmpty() ? Mono.error(new UserNotFoundException("User not found")) : Mono.just(mapUserToUserResponseDto(user.get()))
+                user.isEmpty() ? Mono.error(new GetUserException("No param(s) provided")) : Mono.just(mapUserToUserResponseDto(user.get()))
         );
     }
 

@@ -27,7 +27,10 @@ import reactor.core.publisher.Mono;
 
 import java.time.Duration;
 import java.time.ZonedDateTime;
-import java.util.*;
+import java.util.List;
+import java.util.Optional;
+import java.util.Random;
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
 
 @Log4j2
@@ -67,39 +70,41 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public Mono<User> createUser(UserDto userDto) {
+        return Mono.fromCallable(() -> {
+            User user = User.builder()
+                    .firstName(userDto.getFirstName())
+                    .lastName(userDto.getLastName())
+                    .email(userDto.getEmail())
+                    .location(userDto.getNationality())
+                    .mobileNo(userDto.getMobileNo())
+                    .build();
 
-        User user = User.builder()
-                .firstName(userDto.getFirstName())
-                .lastName(userDto.getLastName())
-                .email(userDto.getEmail())
-                .location(userDto.getNationality())
-                .mobileNo(userDto.getMobileNo())
-                .build();
-
-        return Mono.just(userRepository.save(user));
+            return userRepository.save(user);
+        });
     }
 
     @Override
     public Mono<Optional<User>> getUserById(String id) {
-        return Mono.just(userRepository.findById(id));
+        return Mono.fromCallable(() -> userRepository.findById(id));
     }
 
     @Override
     public Mono<Optional<User>> getUserByEmail(String email) {
-        return Mono.just(userRepository.findByEmail(email));
+        return Mono.fromCallable(() -> userRepository.findByEmail(email));
     }
 
     @Override
     public Mono<Optional<User>> getUserByMobileNo(String mobileNo) {
-        return Mono.just(userRepository.findByMobileNo(mobileNo));
+        return Mono.fromCallable(() -> userRepository.findByMobileNo(mobileNo));
     }
 
     @Override
     public Mono<Boolean> generateVerificationEmail(String email, VerificationMethod verificationMethod) {
-
-        log.info("Generate verification email: {}", email);
         return Mono.fromCallable(() -> {
+                    log.info("Generate verification email: {}", email);
+
                     Optional<User> userOptional = userRepository.findByEmail(email);
+
                     if (userOptional.isPresent()) {
                         return Mono.just(userOptional.get());
                     } else {
@@ -108,15 +113,13 @@ public class UserServiceImpl implements UserService {
                 })
                 .cast(User.class)
                 .flatMap(user -> {
-                    switch (verificationMethod) {
-                        case TOKEN:
-                            String token = UUID.randomUUID().toString();
+                    if (verificationMethod.equals(VerificationMethod.TOKEN)) {
+                        String token = UUID.randomUUID().toString();
 
-                            return reactiveValueOps.set(user.getId(), token,
-                                    Duration.ofMillis(TOKEN_EXPIRATION_TIME)).flatMap(response -> Mono.just(token));
-                        default:
-                            return Mono.error(new UnsupportedOperationException("Verification method not supported"));
+                        return reactiveValueOps.set(user.getId(), token,
+                                Duration.ofMillis(TOKEN_EXPIRATION_TIME)).flatMap(response -> Mono.just(token));
                     }
+                    return Mono.error(new UnsupportedOperationException("Verification method not supported"));
                 })
                 .flatMap(token -> {
                     // Generate verification link
@@ -139,8 +142,8 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public Mono<OTPResponse> generateVerificationMobileNo(String mobileNo, VerificationMethod verificationMethod) {
-        log.info("Generate verification mobile no: {}", mobileNo);
         return Mono.fromCallable(() -> {
+                    log.info("Generate verification mobile no: {}", mobileNo);
                     Optional<User> userOptional = userRepository.findByMobileNo(mobileNo);
                     if (userOptional.isPresent()) {
                         return Mono.just(userOptional.get());
@@ -187,9 +190,14 @@ public class UserServiceImpl implements UserService {
         return Mono.fromCallable(() -> {
                     UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken = (UsernamePasswordAuthenticationToken) SecurityContextHolder.getContext().getAuthentication();
                     UserDetails userDetails = (UserDetails) usernamePasswordAuthenticationToken.getPrincipal();
-                    return userRepository.findById(userDetails.getUsername()).get();
+
+                    Optional<User> userOptional = userRepository.findById(userDetails.getUsername());
+                    if (userOptional.isPresent()) {
+                        return userOptional.get();
+                    } else {
+                        throw new UserNotFoundException("User not found");
+                    }
                 })
-                .onErrorMap(NoSuchElementException.class, e -> new UserNotFoundException("User not found"))
                 .cast(User.class)
                 .flatMap(user -> reactiveValueOps.get(user.getId())).cast(String.class)
                 .flatMap(existingOtp -> Mono.just(token.equals(existingOtp)))

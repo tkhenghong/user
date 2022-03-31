@@ -17,15 +17,15 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Mono;
 
-@RequestMapping("/api/v1/otp")
+@RequestMapping("/otp")
 @Log4j2
 @RestController
-public class OTPController {
+public class UserOTPController {
 
     private final UserService userService;
 
     @Autowired
-    public OTPController(UserService userService) {
+    public UserOTPController(UserService userService) {
         this.userService = userService;
     }
 

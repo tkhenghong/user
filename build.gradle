@@ -30,6 +30,7 @@ dependencies {
 	implementation 'org.springdoc:springdoc-openapi-maven-plugin:1.3'
 	implementation 'org.springdoc:springdoc-openapi-hateoas:1.6.6'
 	implementation 'org.springdoc:springdoc-openapi-security:1.6.6'
+	implementation 'com.playtika.reactivefeign:feign-reactor-spring-cloud-starter:3.1.5'
 
 	implementation 'org.springframework.boot:spring-boot-starter'
 	implementation 'org.springframework.boot:spring-boot-starter-web'
@@ -38,7 +39,6 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-hateoas'
 	implementation 'org.springframework.boot:spring-boot-starter-integration'
 	implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
-//	implementation 'org.springframework.boot:spring-boot-starter-security'
 	implementation 'org.springframework.session:spring-session-core'
 	implementation 'org.springframework.session:spring-session-data-redis'
 	implementation 'org.apache.kafka:kafka-streams'
